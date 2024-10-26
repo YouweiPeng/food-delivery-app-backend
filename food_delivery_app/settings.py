@@ -32,7 +32,10 @@ SECRET_KEY = 'django-insecure-cw+5vg-)r#0-8-k29h=ijhiz0qzjg_p-4-)16@@5#=**8^a5n*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    "https://food-delivery-app-backend-gtek.onrender.com",
+    "https://food-delivery-app-frontend-5twh.onrender.com"
+]
 
 
 # Application definition
