@@ -34,7 +34,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "food-delivery-app-backend-gtek.onrender.com",
-    "food-delivery-app-frontend-5twh.onrender.com"
+    "food-delivery-app-frontend-5twh.onrender.com",
+    "127.0.0.1",
+    "localhost"
 ]
 
 
@@ -80,6 +82,7 @@ MIDDLEWARE = [
 CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'https://food-delivery-app-frontend-5twh.onrender.com',
+    'http://localhost:5173',
 ]
 ROOT_URLCONF = 'food_delivery_app.urls'
 
@@ -116,7 +119,7 @@ SESSION_COOKIE_SECURE = False
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
 CORS_ORIGIN_WHITELIST = [
-    "http://localhost:5173"
+    "http://localhost:5173",
     "https://food-delivery-app-frontend-5twh.onrender.com"
     ]
 CSRF_TRUSTED_ORIGINS = [
@@ -135,7 +138,7 @@ DATABASES = {
     }
 }
 
-DATABASES["default"] = dj_database_url.parse("postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a.oregon-postgres.render.com/food_delivery_app_n0z0")
+# DATABASES["default"] = dj_database_url.parse("postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a.oregon-postgres.render.com/food_delivery_app_n0z0")
 # postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a/food_delivery_app_n0z0
 AUTH_USER_MODEL = 'user.User'
 
