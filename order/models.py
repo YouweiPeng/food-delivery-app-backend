@@ -1,0 +1,78 @@
+from django.db import models
+import string
+import random
+import datetime
+from user.models import User
+import base64
+from io import BytesIO
+from django.core.files.base import ContentFile
+from PIL import Image
+DAY_CHOICES = [
+    ('MON', 'Monday'),
+    ('TUE', 'Tuesday'),
+    ('WED', 'Wednesday'),
+    ('THU', 'Thursday'),
+    ('FRI', 'Friday'),
+    ('SAT', 'Saturday'),
+    ('SUN', 'Sunday'),
+]
+WEEK_CHOICES = [
+    ('WEEK1', 'Week 1'),
+    ('WEEK2', 'Week 2'),
+]
+ORDER_STATUS_CHOICES = [
+    ('pending', 'pending'),
+    ('delivered', 'delivered'),
+    ('refunded', 'refunded'),
+]
+
+def generate_order_code():
+    length = 6
+    chars = string.ascii_uppercase + string.digits
+    max_attempts = 100 
+    for _ in range(max_attempts):
+        new_code = ''.join(random.choices(chars, k=length))
+        if not Order.objects.filter(order_code=new_code).exists():
+            return new_code
+    raise ValueError("Unable to generate a unique order code after 100 attempts.")
+
+
+class Order(models.Model):
+    order_code = models.CharField(max_length=9, unique=True, default=generate_order_code)
+    address = models.CharField(max_length=100)
+    phone_number = models.CharField(max_length=100)
+    email = models.EmailField(max_length=100)
+    date = models.DateTimeField(default=datetime.datetime.now)
+    price = models.DecimalField(max_digits=6, decimal_places=2)
+    quantity = models.IntegerField()
+    comment = models.TextField(blank=True)
+    session_id = models.CharField(max_length=100, default='')
+    status = models.CharField(max_length=10, choices=ORDER_STATUS_CHOICES, default='pending')
+    upload_image = models.ImageField(upload_to='temp_images/', blank=True, null=True)
+    image = models.TextField(blank=True)
+    user = models.CharField(max_length=10000, default='')
+    payment_intent = models.CharField(max_length=10000, default='')
+    def save(self, *args, **kwargs):
+        if self.upload_image:
+            image = Image.open(self.upload_image)
+            buffer = BytesIO()
+            image.save(buffer, format=image.format)
+            base64_image = base64.b64encode(buffer.getvalue()).decode()
+            self.image = base64_image
+            self.upload_image = None
+        super().save(*args, **kwargs)
+    def __str__(self):
+        return f"Order {self.order_code}"
+
+class FoodGroup(models.Model):
+    food = models.ForeignKey('FoodItem', on_delete=models.CASCADE)
+    day = models.CharField(max_length=3, choices=DAY_CHOICES)
+    week = models.CharField(max_length=5, choices=WEEK_CHOICES)
+    def __str__(self):
+        return self.day.__str__() + ' ' + self.food.name + ' of ' + self.week.__str__().lower()
+class FoodItem(models.Model): # single food item
+    name = models.CharField(max_length=100)
+    picture = models.ImageField()
+    description = models.TextField()
+    def __str__(self):
+        return self.name
