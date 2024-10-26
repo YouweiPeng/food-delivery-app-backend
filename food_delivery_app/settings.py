@@ -138,7 +138,7 @@ DATABASES = {
     }
 }
 
-# DATABASES["default"] = dj_database_url.parse("postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a.oregon-postgres.render.com/food_delivery_app_n0z0")
+DATABASES["default"] = dj_database_url.parse("postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a.oregon-postgres.render.com/food_delivery_app_n0z0")
 # postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a/food_delivery_app_n0z0
 AUTH_USER_MODEL = 'user.User'
 
