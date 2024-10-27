@@ -40,7 +40,9 @@ def user_login(request):
         request.session.session_key, 
         httponly=True, 
         secure=True, 
-        samesite = None,)
+        samesite = None,
+        domain = '.tastyrush.ca'
+        )
         
         response['Access-Control-Allow-Credentials'] = True
         response['Access-Control-Allow-Origin'] = FRONT_END_DOMAIN
