@@ -70,7 +70,7 @@ def create_checkout_session(request):
                 }
             ],
             mode='payment',
-            success_url=YOUR_DOMAIN + '/success/session_id={CHECKOUT_SESSION_ID}',
+            success_url=YOUR_DOMAIN + 'success/session_id={CHECKOUT_SESSION_ID}',
             cancel_url=YOUR_DOMAIN + '?cancel=true',
             metadata={
                 'address': address,
