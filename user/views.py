@@ -36,12 +36,13 @@ def user_login(request):
         })
         
         # Set a secure session cookie
-        response.set_cookie('sessionid', 
-        request.session.session_key, 
-        httponly=True, 
-        secure=True, 
-        samesite = None,
-        domain='.tastyrush.ca'
+        response.set_cookie(
+            'sessionid', 
+            request.session.session_key, 
+            httponly=True, 
+            secure=True, 
+            samesite='None',       # Allows cross-subdomain access
+            domain='.tastyrush.ca' # Sets the domain to be accessible on both subdomains
         )
         
         response['Access-Control-Allow-Credentials'] = True
@@ -50,6 +51,7 @@ def user_login(request):
         return response
     else:
         return JsonResponse({'error': 'Invalid credentials'}, status=400)
+
 
 
 
