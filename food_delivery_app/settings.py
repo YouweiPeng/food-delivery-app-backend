@@ -85,6 +85,7 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     'https://food-delivery-app-frontend-5twh.onrender.com',
     'http://localhost:5173',
+    "https://www.tastyrush.ca"
 ]
 ROOT_URLCONF = 'food_delivery_app.urls'
 
@@ -119,11 +120,13 @@ WSGI_APPLICATION = 'food_delivery_app.wsgi.application'
 
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:5173",
-    "https://food-delivery-app-frontend-5twh.onrender.com"
+    "https://food-delivery-app-frontend-5twh.onrender.com",
+    "https://www.tastyrush.ca"
     ]
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:5173',
-    "https://food-delivery-app-frontend-5twh.onrender.com"
+    "https://food-delivery-app-frontend-5twh.onrender.com",
+    "https://www.tastyrush.ca"
 ]
 
 
