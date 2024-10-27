@@ -1,24 +1,22 @@
 from django.contrib.auth.models import User
 from rest_framework import status
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
-from rest_framework.authentication import BasicAuthentication
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
-from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth import get_user_model
 from .serializers import UserSerializer
-from order.models import Order
 User = get_user_model()
-from order.serializers import OrderSerializer
 from django.http import JsonResponse
 from django.contrib.auth import login, authenticate, logout
 from django.conf import settings
 from django.utils import timezone
 from django.contrib.sessions.models import Session
-import base64
+from django.utils import timezone
+from django.contrib.auth import get_user_model
 FRONT_END_DOMAIN = settings.FRONT_END_DOMAIN
+User = get_user_model()
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
@@ -38,7 +36,11 @@ def user_login(request):
         })
         
         # Set a secure session cookie
-        response.set_cookie('sessionid', request.session.session_key, httponly=True, secure=True, samesite = None)
+        response.set_cookie('sessionid', 
+        request.session.session_key, 
+        httponly=True, 
+        secure=True, 
+        samesite = None,)
         
         response['Access-Control-Allow-Credentials'] = True
         response['Access-Control-Allow-Origin'] = FRONT_END_DOMAIN
@@ -48,11 +50,6 @@ def user_login(request):
         return JsonResponse({'error': 'Invalid credentials'}, status=400)
 
 
-from django.contrib.sessions.models import Session
-from django.utils import timezone
-from django.contrib.auth import get_user_model
-
-User = get_user_model()  # Use the custom User model
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

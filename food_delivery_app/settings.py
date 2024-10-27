@@ -36,7 +36,9 @@ ALLOWED_HOSTS = [
     "food-delivery-app-backend-gtek.onrender.com",
     "food-delivery-app-frontend-5twh.onrender.com",
     "127.0.0.1",
-    "localhost"
+    "localhost",
+    "backend.tastyrush.ca",
+    "www.tastyrush.ca",
 ]
 
 
