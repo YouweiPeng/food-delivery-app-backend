@@ -41,7 +41,7 @@ def user_login(request):
         httponly=True, 
         secure=True, 
         samesite = None,
-        domain = '.tastyrush.ca'
+        domain = FRONT_END_DOMAIN
         )
         
         response['Access-Control-Allow-Credentials'] = True
