@@ -22,7 +22,7 @@ FRONT_END_DOMAIN = settings.FRONT_END_DOMAIN
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
-    username = request.data.get("username")
+    username = request.data.get("username").lower()
     password = request.data.get("password")
     user = authenticate(username=username, password=password)
 
@@ -94,7 +94,7 @@ def auto_login(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_signup(request):
-    username = request.data.get("username")
+    username = request.data.get("username").lower()
     password = request.data.get("password")
     email = request.data.get("email")
     address = request.data.get("address")
