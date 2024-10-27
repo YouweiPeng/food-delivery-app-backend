@@ -115,9 +115,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'food_delivery_app.wsgi.application'
 
-SESSION_COOKIE_SECURE = False
-SESSION_COOKIE_SAMESITE = 'Lax'
-SESSION_COOKIE_HTTPONLY = True
 CORS_ORIGIN_WHITELIST = [
     "http://localhost:5173",
     "https://food-delivery-app-frontend-5twh.onrender.com"
