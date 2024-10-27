@@ -25,7 +25,7 @@ def user_login(request):
     user = authenticate(username=username, password=password)
 
     if user is not None:
-        login(request, user)  # Logs the user in and creates a session
+        login(request, user)
         response = JsonResponse({
             'message': 'Logged in successfully',
             'uuid': user.uuid,
@@ -34,15 +34,12 @@ def user_login(request):
             'address': user.address,
             'phone_number': user.phone_number
         })
-        
-        # Set a secure session cookie
         response.set_cookie(
             'sessionid', 
             request.session.session_key, 
             httponly=True, 
             secure=True, 
-            samesite='None',       # Allows cross-subdomain access
-            domain='.tastyrush.ca' # Sets the domain to be accessible on both subdomains
+            samesite='None',
         )
         
         response['Access-Control-Allow-Credentials'] = True

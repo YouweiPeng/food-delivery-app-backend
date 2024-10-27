@@ -129,7 +129,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.tastyrush.ca"
 ]
 
-
+SESSION_COOKIE_DOMAIN = ".tastyrush.ca"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
