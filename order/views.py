@@ -50,7 +50,7 @@ def getAllFoodItems(request):
         food_data = {
             "name": food_item.name,
             "description": food_item.description,
-            "picture_url": food_item.picture.url if food_item.picture else None
+            "picture_base64": food_item.picture if food_item.picture else None
         }
         if food_group.week == 'WEEK1':
             res['Week_1'][day_map[food_group.day]].append(food_data)
