@@ -62,7 +62,7 @@ class Order(models.Model):
             self.upload_image = None
         super().save(*args, **kwargs)
     def __str__(self):
-        return f"Order {self.order_code}"
+        return f"Order {self.order_code} at {self.address} of quantity {self.quantity}"
 
 class FoodGroup(models.Model):
     food = models.ForeignKey('FoodItem', on_delete=models.CASCADE)
@@ -72,7 +72,17 @@ class FoodGroup(models.Model):
         return self.day.__str__() + ' ' + self.food.name + ' of ' + self.week.__str__().lower()
 class FoodItem(models.Model): # single food item
     name = models.CharField(max_length=100)
-    picture = models.ImageField()
+    picture = models.TextField(blank=True)
+    upload_image = models.ImageField(upload_to='food_pictures/', blank=True, null=True)
+    def save(self, *args, **kwargs):
+        if self.upload_image:
+            image = Image.open(self.upload_image)
+            buffer = BytesIO()
+            image.save(buffer, format=image.format)
+            base64_image = base64.b64encode(buffer.getvalue()).decode()
+            self.picture = base64_image
+            self.upload_image = None
+        super().save(*args, **kwargs)
     description = models.TextField()
     def __str__(self):
         return self.name
