@@ -38,7 +38,7 @@ def user_login(request):
         })
         
         # Set a secure session cookie
-        response.set_cookie('sessionid', request.session.session_key, httponly=True, secure=True, samesite='Lax')
+        response.set_cookie('sessionid', request.session.session_key, httponly=True, secure=True, samesite = None)
         
         response['Access-Control-Allow-Credentials'] = 'true'
         response['Access-Control-Allow-Origin'] = FRONT_END_DOMAIN
