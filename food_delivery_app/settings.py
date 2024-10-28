@@ -19,6 +19,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_API_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 MAILJET_API_KEY = os.getenv("MAIL_JET_API_KEY")
 MAILJET_SECRET_KEY = os.getenv("MAIL_JET_SECRET_KEY")
+DEVELOPMENT = os.getenv("DEVELOPMENT")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,7 +31,8 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-cw+5vg-)r#0-8-k29h=ijhiz0qzjg_p-4-)16@@5#=**8^a5n*'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+
+DEBUG = DEVELOPMENT
 
 ALLOWED_HOSTS = [
     "food-delivery-app-backend-gtek.onrender.com",
@@ -130,7 +132,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://www.tastyrush.ca"
 ]
 
-SESSION_COOKIE_DOMAIN = ".tastyrush.ca"
+if not DEVELOPMENT:
+    SESSION_COOKIE_DOMAIN = ".tastyrush.ca"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 
@@ -141,7 +144,8 @@ DATABASES = {
     }
 }
 
-DATABASES["default"] = dj_database_url.parse("postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a.oregon-postgres.render.com/food_delivery_app_n0z0")
+if not DEVELOPMENT:
+    DATABASES["default"] = dj_database_url.parse("postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a.oregon-postgres.render.com/food_delivery_app_n0z0")
 # postgresql://food_delivery_app_n0z0_user:825Clo0nSqTServ8BDQLRwNCEtxXw8y9@dpg-csekgq68ii6s7395s4d0-a/food_delivery_app_n0z0
 AUTH_USER_MODEL = 'user.User'
 

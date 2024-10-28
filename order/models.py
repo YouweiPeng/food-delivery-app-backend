@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import ArrayField
 import string
 import random
 import datetime
@@ -25,7 +26,6 @@ ORDER_STATUS_CHOICES = [
     ('delivered', 'delivered'),
     ('refunded', 'refunded'),
 ]
-
 def generate_order_code():
     length = 6
     chars = string.ascii_uppercase + string.digits
@@ -64,12 +64,34 @@ class Order(models.Model):
     def __str__(self):
         return f"Order {self.order_code} at {self.address} of quantity {self.quantity}"
 
+
 class FoodGroup(models.Model):
     food = models.ForeignKey('FoodItem', on_delete=models.CASCADE)
     day = models.CharField(max_length=3, choices=DAY_CHOICES)
     week = models.CharField(max_length=5, choices=WEEK_CHOICES)
+    def save(self, *args, **kwargs):
+        menu = Menu.objects.filter(week=self.week).first()
+        if self.day == 'MON':
+            menu.monday.add(self.food)
+        elif self.day == 'TUE':
+            menu.tuesday.add(self.food)
+        elif self.day == 'WED':
+            menu.wednesday.add(self.food)
+        elif self.day == 'THU':
+            menu.thursday.add(self.food)
+        elif self.day == 'FRI':
+            menu.friday.add(self.food)
+        elif self.day == 'SAT':
+            menu.saturday.add(self.food)
+        elif self.day == 'SUN':
+            menu.sunday.add(self.food)
+    
+    
+    
     def __str__(self):
         return self.day.__str__() + ' ' + self.food.name + ' of ' + self.week.__str__().lower()
+    
+
 class FoodItem(models.Model): # single food item
     name = models.CharField(max_length=100)
     picture = models.TextField(blank=True)
@@ -86,3 +108,17 @@ class FoodItem(models.Model): # single food item
     description = models.TextField()
     def __str__(self):
         return self.name
+
+class Menu(models.Model):
+    name = models.CharField(max_length=100, default='Menu')
+    week = models.CharField(max_length=5, choices=WEEK_CHOICES, default='WEEK1')
+    monday = models.ManyToManyField(FoodItem, related_name='monday', blank=True)
+    tuesday = models.ManyToManyField(FoodItem, related_name='tuesday', blank=True)
+    wednesday = models.ManyToManyField(FoodItem, related_name='wednesday', blank=True)
+    thursday = models.ManyToManyField(FoodItem, related_name='thursday', blank=True)
+    friday = models.ManyToManyField(FoodItem, related_name='friday', blank=True)
+    saturday = models.ManyToManyField(FoodItem, related_name='saturday', blank=True)
+    sunday = models.ManyToManyField(FoodItem, related_name='sunday', blank=True)
+    
+    def __str__(self):
+        return self.name + ' ' + self.week.__str__().lower()

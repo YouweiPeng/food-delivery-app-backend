@@ -1,13 +1,14 @@
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from .models import FoodGroup, Order
+from .models import FoodGroup, Order, Menu
 from .serializers import OrderSerializer
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status
 import uuid
+from .serializers import MenuSerializer
 from user.models import User
 from django.contrib.sessions.models import Session
 from django.utils import timezone
@@ -99,3 +100,11 @@ def get_orders_for_user(request, uuid):
     orders = Order.objects.filter(user=uuid).order_by('-date')
     serializer = OrderSerializer(orders, many=True)
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_menu(request):
+    menu = Menu.objects.all()
+    menu_serializer = MenuSerializer(menu, many=True)
+    return Response(menu_serializer.data, status=status.HTTP_200_OK)
+    
