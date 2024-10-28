@@ -19,7 +19,7 @@ STRIPE_SECRET_KEY = os.getenv("STRIPE_API_KEY")
 STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
 MAILJET_API_KEY = os.getenv("MAIL_JET_API_KEY")
 MAILJET_SECRET_KEY = os.getenv("MAIL_JET_SECRET_KEY")
-DEVELOPMENT = os.getenv("DEVELOPMENT")
+DEVELOPMENT = (os.getenv("DEVELOPMENT") == "True")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
