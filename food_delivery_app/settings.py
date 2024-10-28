@@ -32,7 +32,7 @@ SECRET_KEY = 'django-insecure-cw+5vg-)r#0-8-k29h=ijhiz0qzjg_p-4-)16@@5#=**8^a5n*
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
-DEBUG = DEVELOPMENT
+DEBUG = True
 
 ALLOWED_HOSTS = [
     "food-delivery-app-backend-gtek.onrender.com",
@@ -186,9 +186,9 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static/'
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, 'static')
-]
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static')
+# ]
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
