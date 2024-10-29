@@ -96,7 +96,7 @@ def create_checkout_session(request):
 @permission_classes([AllowAny])
 def stripe_webhook(request):
     payload = request.body
-    sig_header = request.META['HTTP_STRIPE_SIGNATURE']
+    sig_header = request.META['Stripe-Signature']
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
     event = None
 
