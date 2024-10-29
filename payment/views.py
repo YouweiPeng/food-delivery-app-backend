@@ -33,7 +33,6 @@ def create_checkout_session(request):
     tax_rate = 0.05
     tax_in_cents = int(total_price_in_cents * tax_rate)
     tax_in_float = tax_in_cents / 100
-
     try:
         checkout_session = stripe.checkout.Session.create(
             payment_method_types=['card'],
@@ -97,7 +96,7 @@ def create_checkout_session(request):
 @permission_classes([AllowAny])
 def stripe_webhook(request):
     payload = request.body
-    sig_header = request.headers.get('stripe-signature')
+    sig_header = request.headers['STRIPE_SIGNATURE']
     endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
     event = None
 
