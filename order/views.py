@@ -13,6 +13,9 @@ from user.models import User
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.http import JsonResponse
+import stripe
+from django.conf import settings
+stripe.api_key = settings.STRIPE_SECRET_KEY
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getAllFoodItems(request):
@@ -107,4 +110,26 @@ def get_menu(request):
     menu = Menu.objects.all()
     menu_serializer = MenuSerializer(menu, many=True)
     return Response(menu_serializer.data, status=status.HTTP_200_OK)
-    
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def cancel_order(request, order_code, uuid):
+    session_id = request.COOKIES.get('sessionid')
+    if not session_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    session = Session.objects.get(session_key=session_id)
+    if session.expire_date < timezone.now():
+        return JsonResponse({'error': 'Session expired'}, status=400)
+    order = Order.objects.get(order_code=order_code, user=uuid)
+    if order.status != 'pending':
+        return JsonResponse({'error': 'Order cannot be cancelled'}, status=400)
+    try:
+        stripe.Refund.create(
+            payment_intent=order.payment_intent,
+            amount = int(int(order.price) * 100 - 0.062 * int(order.price) * 100 - 0.3 * 100)
+        )
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
+    order.status = 'refunded'
+    order.save()
+    return JsonResponse({'message': 'Order cancelled successfully'}, status=200)

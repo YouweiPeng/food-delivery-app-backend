@@ -132,6 +132,7 @@ def stripe_webhook(request):
             session_id=session['id'],
             user = user,
             payment_intent=session['payment_intent'],
+            delivery_fee=int(extraFee),
         )
         encoded_address = urllib.parse.quote(address)
         order = Order.objects.get(session_id=session['id'])
