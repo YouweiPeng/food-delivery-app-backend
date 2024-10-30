@@ -126,7 +126,7 @@ def cancel_order(request, order_code, uuid):
     try:
         stripe.Refund.create(
             payment_intent=order.payment_intent,
-            amount = int(int(order.price) * 100 - 0.062 * int(order.price) * 100 - 0.3 * 100)
+            amount = int(int(order.price + order.delivery_fee) * 100 - 0.062 * int(order.price + order.delivery_fee) * 100 - 0.3 * 100)
         )
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
