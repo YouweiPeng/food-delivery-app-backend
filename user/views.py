@@ -22,8 +22,6 @@ User = get_user_model()
 def user_login(request):
     username_or_email = request.data.get("username").lower()
     password = request.data.get("password")
-
-    # Attempt to retrieve the user by username or email
     try:
         get_user = User.objects.get(username=username_or_email)
     except User.DoesNotExist:
@@ -42,6 +40,7 @@ def user_login(request):
             'address': user.address,
             'phone_number': user.phone_number,
             'room_number': user.room_number,
+            'is_staff': user.is_staff,
         })
         response.set_cookie(
             'sessionid', 
@@ -90,6 +89,7 @@ def auto_login(request):
                         'address': user.address,
                         'phone_number': user.phone_number,
                         'room_number': user.room_number,
+                        'is_staff': user.is_staff,
                     })
 
         except Session.DoesNotExist:
@@ -114,7 +114,7 @@ def user_signup(request):
         return Response({'error': '电话号码已被注册'}, status=status.HTTP_400_BAD_REQUEST)
     user = User(username=username, password=make_password(password), email = email, address = address, phone_number = phone_number, room_number = room_number)
     user.save()
-    return Response({'message': 'User created successfully', 'uuid': user.uuid}, status=status.HTTP_201_CREATED)
+    return Response({'message': 'User created successfully', 'uuid': user.uuid, 'is_staff':user.is_staff}, status=status.HTTP_201_CREATED)
 
 @api_view(['PUT'])
 @permission_classes([AllowAny])

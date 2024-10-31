@@ -21,7 +21,7 @@ MAILJET_API_KEY = os.getenv("MAIL_JET_API_KEY")
 MAILJET_SECRET_KEY = os.getenv("MAIL_JET_SECRET_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
+DEVELOPMENT = os.getenv("DEVELOPMENT") == "True"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
@@ -132,7 +132,9 @@ CSRF_TRUSTED_ORIGINS = [
 ]
 TIME_ZONE = 'America/Edmonton'
 USE_TZ = True  # Keep this as True to enable timezone support
-SESSION_COOKIE_DOMAIN = ".tastyrush.ca"
+
+if not DEVELOPMENT:
+    SESSION_COOKIE_DOMAIN = ".tastyrush.ca"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases
 

@@ -144,3 +144,78 @@ def cancel_order(request, order_code, uuid):
     }
     mailjet.send.create(data=data)
     return JsonResponse({'message': 'Order cancelled successfully'}, status=200)
+
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def delivery_get_order_for_today(request):
+    session_id = request.COOKIES.get('sessionid')
+    if not session_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    session = Session.objects.get(session_key=session_id)
+    if session.expire_date < timezone.now():
+        return JsonResponse({'error': 'Session expired'}, status=400)
+    today = timezone.localdate()
+    orders = Order.objects.filter(cancel_time__date=today, status='pending')
+    serializer = OrderSerializer(orders, many=True)
+    return Response(serializer.data, status=status.HTTP_200_OK)
+
+from django.utils.html import escape
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def delivery_finish_order(request):
+    session_id = request.COOKIES.get('sessionid')
+    if not session_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    session = Session.objects.get(session_key=session_id)
+    if session.expire_date < timezone.now():
+        return JsonResponse({'error': 'Session expired'}, status=400)
+    order_code = request.data.get("order_code")
+    id = request.data.get("id")
+    image = request.FILES.get("image") 
+    order = Order.objects.get(order_code=order_code, id=id)
+    order.status = 'delivered'
+    if image:
+        order.upload_image = image
+        order.save()
+    
+    mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
+    data = {
+        'Messages': [
+            {
+                "From": {
+                    "Email": "990907pyw@gmail.com"
+                },
+                "To": [
+                    {
+                        "Email": order.email,
+                    }
+                ],
+                "Subject": "您的订单已送达",
+                "TextPart": f"您的订单{order.order_code} 已送达",
+                "HTMLPart": f"""
+                <h3>您的订单{order.order_code} 已送达</h3>
+                <h1>订单详情</h1>
+                <p>订单号: {order.order_code}</p>
+                <p>订单日期: {timezone.localtime(order.date).strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <p>地址: {escape(order.address)}</p>
+                <p>电话号码: {escape(order.phone_number)}</p>
+                <p>电子邮件: {escape(order.email)}</p>
+                <p>餐品价格: {order.price}</p>
+                """,
+                "Attachments": [
+                    {
+                        "ContentType": "image/png",
+                        "Filename": "配送员送达图片",
+                        "Base64Content": order.image
+                    }
+                ] if image else []
+                
+            }
+        ]
+    }
+    mailjet.send.create(data=data)
+    return JsonResponse({'message': 'Order finished successfully', "order_code": order_code}, status=200)
+
