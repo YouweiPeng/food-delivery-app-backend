@@ -130,7 +130,8 @@ CSRF_TRUSTED_ORIGINS = [
     "https://food-delivery-app-frontend-5twh.onrender.com",
     "https://www.tastyrush.ca"
 ]
-
+TIME_ZONE = 'America/Edmonton'
+USE_TZ = True  # Keep this as True to enable timezone support
 SESSION_COOKIE_DOMAIN = ".tastyrush.ca"
 # Database
 # https://docs.djangoproject.com/en/5.1/ref/settings/#databases

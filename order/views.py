@@ -64,30 +64,6 @@ def getAllFoodItems(request):
     return Response(res, status=200)
 
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def create_order(request):
-    data = request.data
-    try:
-        order = Order.objects.create(**data)
-
-        return Response({
-            'message': 'Order created successfully',
-            'order_code': order.order_code,
-            'address': order.address,
-            'phone_number': order.phone_number,
-            'email': order.email,
-            'date': order.date.strftime('%Y-%m-%d %H:%M:%S'),
-            'price': order.price,
-            'quantity': order.quantity,
-            'comment': order.comment
-        }, status=status.HTTP_201_CREATED)
-
-    except KeyError as e:
-        return Response({
-            'error': f'Missing field: {str(e)}'
-        }, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_orders_for_user(request, uuid):
