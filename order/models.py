@@ -43,7 +43,7 @@ class Order(models.Model):
     address = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=100)
     email = models.EmailField(max_length=100)
-    date = models.DateTimeField(default= datetime.datetime.now(pytz.timezone("America/Edmonton")))
+    date = models.DateTimeField(default = datetime.datetime.now(pytz.timezone("America/Edmonton")))
     price = models.DecimalField(max_digits=6, decimal_places=2)
     quantity = models.IntegerField()
     comment = models.TextField(blank=True)
