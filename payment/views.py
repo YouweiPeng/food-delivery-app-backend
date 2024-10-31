@@ -216,8 +216,8 @@ def stripe_webhook(request):
             ]
         }
         
-        # mailjet.send.create(data=data)
-        # mailjet.send.create(data=data_for_stores)
+        mailjet.send.create(data=data)
+        mailjet.send.create(data=data_for_stores)
     return JsonResponse({'status': 'success'}, status=200)
 
 
