@@ -144,8 +144,9 @@ def stripe_webhook(request):
         order = Order.objects.get(session_id=session['id'])
         order.date = datetime.datetime.now(pytz.timezone("America/Edmonton"))
         order.save()
-        # print(order.date)
-        # print(datetime.datetime.now(pytz.timezone("America/Edmonton")))
+        print(order.date)
+        print(datetime.datetime.now(pytz.timezone("America/Edmonton")))
+        print(order.cancel_time)
         mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
         data = {
             'Messages': [
@@ -215,8 +216,8 @@ def stripe_webhook(request):
             ]
         }
         
-        mailjet.send.create(data=data)
-        mailjet.send.create(data=data_for_stores)
+        # mailjet.send.create(data=data)
+        # mailjet.send.create(data=data_for_stores)
     return JsonResponse({'status': 'success'}, status=200)
 
 

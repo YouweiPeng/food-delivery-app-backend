@@ -2,7 +2,6 @@ from django.contrib import admin
 from .models import Order, FoodGroup, FoodItem, Menu
 # Register your models here.
 admin.site.register(Menu)
-admin.site.register(Order)
 admin.site.register(FoodItem)
 
 # run the save() inside selected food group
@@ -18,6 +17,17 @@ class FoodGroupAdmin(admin.ModelAdmin):
     search_fields = ('food__name', 'day', 'week')
     ordering = ('week', 'day')
     
+@admin.action(description="save order")
 
+def save_order(modeladmin, request, queryset):
+    for order in queryset:
+        order.save()
+class OrderAdmin(admin.ModelAdmin):
+    actions = [save_order]
+    list_display = ('address', 'phone_number', 'date', 'price', 'quantity', 'status', 'cancel_time')
+    list_filter = ('status', 'date')
+    search_fields = ('address', 'phone_number', 'email')
+    ordering = ('-date',)
 
+admin.site.register(Order, OrderAdmin)
 admin.site.register(FoodGroup, FoodGroupAdmin)

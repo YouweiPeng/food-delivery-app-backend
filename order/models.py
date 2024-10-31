@@ -9,6 +9,7 @@ from io import BytesIO
 from django.core.files.base import ContentFile
 from PIL import Image
 import pytz
+from django.utils import timezone
 DAY_CHOICES = [
     ('MON', 'Monday'),
     ('TUE', 'Tuesday'),
@@ -55,7 +56,15 @@ class Order(models.Model):
     user = models.CharField(max_length=10000, default='')
     payment_intent = models.CharField(max_length=10000, default='')
     room_number = models.CharField(max_length=100, blank=True, null=True, default='N/A')
+    cancel_time = models.DateTimeField(blank=True, null=True) # should not be cancelled after this time, if order is ordered after 11am, it should not be cancelled after tommorow 9L30am, if ordered before 11am, it should not be cancelled after today 9:30am
     def save(self, *args, **kwargs):
+        order_time = timezone.localtime(self.date)
+        if order_time.hour >= 11:
+            self.cancel_time = order_time.replace(hour=9, minute=30, second=0, microsecond=0) + datetime.timedelta(days=1)
+        else:
+            self.cancel_time = order_time.replace(hour=9, minute=30, second=0, microsecond=0)
+        if timezone.is_naive(self.cancel_time):
+            self.cancel_time = timezone.make_aware(self.cancel_time, timezone.get_current_timezone())
         if self.upload_image:
             image = Image.open(self.upload_image)
             buffer = BytesIO()
@@ -64,6 +73,7 @@ class Order(models.Model):
             self.image = base64_image
             self.upload_image = None
         super().save(*args, **kwargs)
+
     def __str__(self):
         return f"Order {self.order_code} at {self.address} of quantity {self.quantity}"
 

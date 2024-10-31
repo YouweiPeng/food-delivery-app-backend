@@ -97,6 +97,8 @@ def cancel_order(request, order_code, uuid):
     if session.expire_date < timezone.now():
         return JsonResponse({'error': 'Session expired'}, status=400)
     order = Order.objects.get(order_code=order_code, user=uuid)
+    if order.cancel_time < timezone.now():
+        return JsonResponse({'error': 'Order cannot be cancelled, already passed cancel time'}, status=400)
     if order.status != 'pending':
         return JsonResponse({'error': 'Order cannot be cancelled'}, status=400)
     try:
