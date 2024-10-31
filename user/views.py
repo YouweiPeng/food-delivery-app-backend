@@ -20,10 +20,18 @@ User = get_user_model()
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_login(request):
-    username = request.data.get("username").lower()
+    username_or_email = request.data.get("username").lower()
     password = request.data.get("password")
-    user = authenticate(username=username, password=password)
 
+    # Attempt to retrieve the user by username or email
+    try:
+        get_user = User.objects.get(username=username_or_email)
+    except User.DoesNotExist:
+        try:
+            get_user = User.objects.get(email=username_or_email)
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Invalid credentials'}, status=400)
+    user = authenticate(username=get_user.username, password=password)
     if user is not None:
         login(request, user)
         response = JsonResponse({
@@ -32,7 +40,8 @@ def user_login(request):
             'username': user.username,
             'email': user.email,
             'address': user.address,
-            'phone_number': user.phone_number
+            'phone_number': user.phone_number,
+            'room_number': user.room_number,
         })
         response.set_cookie(
             'sessionid', 
@@ -79,7 +88,8 @@ def auto_login(request):
                         'username': user.username,
                         'email': user.email,
                         'address': user.address,
-                        'phone_number': user.phone_number
+                        'phone_number': user.phone_number,
+                        'room_number': user.room_number,
                     })
 
         except Session.DoesNotExist:
@@ -97,11 +107,12 @@ def user_signup(request):
     email = request.data.get("email")
     address = request.data.get("address")
     phone_number = request.data.get("phone_number")
+    room_number = request.data.get("room_number")
     if User.objects.filter(email=email).exists():
         return Response({'error': '邮箱已被注册'}, status=status.HTTP_400_BAD_REQUEST)
     if User.objects.filter(phone_number=phone_number).exists():
         return Response({'error': '电话号码已被注册'}, status=status.HTTP_400_BAD_REQUEST)
-    user = User(username=username, password=make_password(password), email = email, address = address, phone_number = phone_number)
+    user = User(username=username, password=make_password(password), email = email, address = address, phone_number = phone_number, room_number = room_number)
     user.save()
     return Response({'message': 'User created successfully', 'uuid': user.uuid}, status=status.HTTP_201_CREATED)
 

@@ -10,5 +10,6 @@ class User(AbstractUser):
     address = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=100)
     email = models.EmailField(max_length=100)
+    room_number = models.CharField(max_length=100, blank=True, null=True, default='N/A')
     def __str__(self):
         return self.username

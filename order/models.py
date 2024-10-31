@@ -8,6 +8,7 @@ import base64
 from io import BytesIO
 from django.core.files.base import ContentFile
 from PIL import Image
+import pytz
 DAY_CHOICES = [
     ('MON', 'Monday'),
     ('TUE', 'Tuesday'),
@@ -42,7 +43,7 @@ class Order(models.Model):
     address = models.CharField(max_length=100)
     phone_number = models.CharField(max_length=100)
     email = models.EmailField(max_length=100)
-    date = models.DateTimeField(default=datetime.datetime.now)
+    date = models.DateTimeField(default= datetime.datetime.now(pytz.timezone("America/Edmonton")))
     price = models.DecimalField(max_digits=6, decimal_places=2)
     quantity = models.IntegerField()
     comment = models.TextField(blank=True)
@@ -53,6 +54,7 @@ class Order(models.Model):
     image = models.TextField(blank=True)
     user = models.CharField(max_length=10000, default='')
     payment_intent = models.CharField(max_length=10000, default='')
+    room_number = models.CharField(max_length=100, blank=True, null=True, default='N/A')
     def save(self, *args, **kwargs):
         if self.upload_image:
             image = Image.open(self.upload_image)

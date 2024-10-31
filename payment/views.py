@@ -6,6 +6,7 @@ from django.conf import settings
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny
 from mailjet_rest import Client
+import pytz
 import urllib.parse
 import os
 import json
@@ -25,6 +26,7 @@ def create_checkout_session(request):
     phone_number = request.POST.get('phone_number')
     quantity = int(request.POST.get('quantity', 1))
     user = request.POST.get('uuid', '')
+    room_number = request.POST.get('room_number', 'N/A')
     todays_meal = request.POST.get('content')
     extraFee = int(request.POST.get('extraFee'))
     extraFee = int(extraFee * 100)
@@ -81,7 +83,8 @@ def create_checkout_session(request):
                 'user': user,
                 'todays_meal': todays_meal,
                 'extraFee': extraFee/100,
-                'tax' : tax_in_float
+                'tax' : tax_in_float,
+                'room_number': room_number,
             }
         )
     except Exception as e:
@@ -121,6 +124,7 @@ def stripe_webhook(request):
         meal_items = today_meal.split(",")
         extraFee = session['metadata']['extraFee']
         tax = session['metadata']['tax']
+        room_number = session['metadata']['room_number']
         meal_list_html = "".join([f"<li>{meal}</li>" for meal in meal_items])
         Order.objects.create(
             address=address,
@@ -133,9 +137,13 @@ def stripe_webhook(request):
             user = user,
             payment_intent=session['payment_intent'],
             delivery_fee=int(float(extraFee)),
+            room_number=room_number,
+            date = datetime.datetime.now(pytz.timezone("America/Edmonton"))
         )
         encoded_address = urllib.parse.quote(address)
         order = Order.objects.get(session_id=session['id'])
+        order.date = datetime.datetime.now(pytz.timezone("America/Edmonton"))
+        order.save()
         mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
         data = {
             'Messages': [
@@ -154,6 +162,7 @@ def stripe_webhook(request):
                         <h3>您的订单 {order.order_code} 感谢您的订购</h3>
                         <p>订单号: {order.order_code}</p>
                         <p>地址: <a href="https://www.google.com/maps/search/?api=1&query={encoded_address}" target="_blank">{order.address}</a></p>
+                        <p>房间号: {order.room_number}</p>
                         <p>电话号码: {order.phone_number}</p>
                         <p>电子邮件: {order.email}</p>
                         <p>日期: {order.date.strftime('%Y-%m-%d %H:%M:%S')}</p>
@@ -186,6 +195,7 @@ def stripe_webhook(request):
                     "HTMLPart": f"""
                         <p>订单号: {order.order_code}</p>
                         <p>顾客地址: <a href="https://www.google.com/maps/search/?api=1&query={encoded_address}" target="_blank">{order.address}</a></p>
+                        <p>顾客房间号: {order.room_number}</p>
                         <p>顾客电话: {order.phone_number}</p>
                         <p>顾客邮箱: {order.email}</p>
                         <p>下单日期: {order.date.strftime('%Y-%m-%d %H:%M:%S')}</p>
@@ -221,7 +231,8 @@ def get_stripe_session(request, session_id):
             'date': order.date.strftime('%Y-%m-%d %H:%M:%S'),
             'price': order.price,
             'quantity': order.quantity,
-            'comment': order.comment
+            'comment': order.comment,
+            'room_number': order.room_number,
         }, status=200)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
