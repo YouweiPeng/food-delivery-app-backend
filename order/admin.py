@@ -24,9 +24,9 @@ def save_order(modeladmin, request, queryset):
         order.save()
 class OrderAdmin(admin.ModelAdmin):
     actions = [save_order]
-    list_display = ('address', 'phone_number', 'date', 'price', 'quantity', 'status', 'cancel_time')
+    list_display = ('order_code','address', 'phone_number', 'date', 'price', 'status', 'cancel_time', 'quantity')
     list_filter = ('status', 'date')
-    search_fields = ('address', 'phone_number', 'email')
+    search_fields = ('address', 'phone_number', 'email', 'order_code')
     ordering = ('-date',)
 
 admin.site.register(Order, OrderAdmin)

@@ -6,6 +6,7 @@ from .serializers import OrderSerializer
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from mailjet_rest import Client
 from rest_framework import status
 import uuid
 from .serializers import MenuSerializer
@@ -16,6 +17,8 @@ from django.http import JsonResponse
 import stripe
 from django.conf import settings
 stripe.api_key = settings.STRIPE_SECRET_KEY
+MAILJET_API_KEY = settings.MAILJET_API_KEY
+MAILJET_SECRET_KEY = settings.MAILJET_SECRET_KEY
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getAllFoodItems(request):
@@ -110,4 +113,34 @@ def cancel_order(request, order_code, uuid):
         return JsonResponse({'error': str(e)}, status=400)
     order.status = 'refunded'
     order.save()
+    mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
+    data = {
+        'Messages': [
+            {
+                "From": {
+                    "Email": "990907pyw@gmail.com",
+                },
+                "To": [
+                    {
+                        "Email": order.email,
+                    }
+                ],
+                "Subject": "您的订单已取消",
+                "TextPart": f"您的订单{order.order_code} 已取消",
+                "HTMLPart": f"""
+                <h3>您的订单{order.order_code} 已取消， 您将在 5-10个工作日看到退款入账</h3>
+                <h1>订单详情</h1>
+                <p>订单号: {order.order_code}</p>
+                <p>订单日期: {timezone.localtime(order.date).strftime('%Y-%m-%d %H:%M:%S')}</p>
+                <p>地址: {order.address}</p>
+                <p>电话号码: {order.phone_number}</p>
+                <p>电子邮件: {order.email}</p>
+                <p>餐品价格: {order.price}</p>
+                <p>配送费: {order.delivery_fee}</p>
+                <p>由于stripe平台条款, 会收取6-10%作为手续费</p>
+                """
+            }
+        ]
+    }
+    mailjet.send.create(data=data)
     return JsonResponse({'message': 'Order cancelled successfully'}, status=200)
