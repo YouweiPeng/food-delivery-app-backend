@@ -179,8 +179,7 @@ def delivery_finish_order(request):
     order.status = 'delivered'
     if image:
         order.upload_image = image
-        order.save()
-    
+    order.save()
     mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
     data = {
         'Messages': [
