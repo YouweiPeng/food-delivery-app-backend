@@ -21,6 +21,8 @@ import datetime
 @permission_classes([AllowAny])
 def create_checkout_session(request):
     address = request.POST.get('address')
+    lon = request.POST.get('lon')
+    lat = request.POST.get('lat')
     comment = request.POST.get('comment')
     email = request.POST.get('email')
     phone_number = request.POST.get('phone_number')
@@ -85,6 +87,8 @@ def create_checkout_session(request):
                 'extraFee': extraFee/100,
                 'tax' : tax_in_float,
                 'room_number': room_number,
+                'lon': lon,
+                'lat': lat,
             }
         )
     except Exception as e:
@@ -125,6 +129,10 @@ def stripe_webhook(request):
         extraFee = session['metadata']['extraFee']
         tax = session['metadata']['tax']
         room_number = session['metadata']['room_number']
+        lon = session['metadata']['lon']
+        lat = session['metadata']['lat']
+        lon = float(lon)
+        lat = float(lat)
         meal_list_html = "".join([f"<li>{meal}</li>" for meal in meal_items])
         Order.objects.create(
             address=address,
@@ -138,7 +146,9 @@ def stripe_webhook(request):
             payment_intent=session['payment_intent'],
             delivery_fee=int(float(extraFee)),
             room_number=room_number,
-            date = datetime.datetime.now(pytz.timezone("America/Edmonton"))
+            date = datetime.datetime.now(pytz.timezone("America/Edmonton")),
+            lon = lon,
+            lat = lat,
         )
         encoded_address = urllib.parse.quote(address)
         order = Order.objects.get(session_id=session['id'])
