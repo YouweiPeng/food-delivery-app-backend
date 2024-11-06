@@ -159,7 +159,8 @@ def stripe_webhook(request):
             'Messages': [
                 {
                     "From": {
-                        "Email": "990907pyw@gmail.com",
+                        "Email": "no-reply@tastyrush.ca",
+                        "Name": "Tasty Rush"
                     },
                     "To": [
                         {
@@ -193,7 +194,8 @@ def stripe_webhook(request):
             'Messages': [
                 {
                     "From": {
-                        "Email": "990907pyw@gmail.com"
+                        "Email": "no-reply@tastyrush.ca",
+                        "Name": "Tasty Rush"
                     },
                     "To": [
                         {
