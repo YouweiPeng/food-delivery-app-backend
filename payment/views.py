@@ -38,7 +38,7 @@ def create_checkout_session(request):
     total_price = float(request.POST.get('total_price', 23))
     total_price_in_cents = int(total_price * 100)
     tax_rate = 0.05
-    tax_in_cents = int(total_price_in_cents * tax_rate)
+    tax_in_cents = int((total_price_in_cents +addOnFee_in_cents) * tax_rate)
     tax_in_float = tax_in_cents / 100
     try:
         checkout_session = stripe.checkout.Session.create(
