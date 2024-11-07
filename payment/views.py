@@ -30,9 +30,12 @@ def create_checkout_session(request):
     user = request.POST.get('uuid', '')
     room_number = request.POST.get('room_number', 'N/A')
     todays_meal = request.POST.get('content')
+    addOnContent = request.POST.get('addOn')
+    addOnFee = float(request.POST.get('addOnFee'))
+    addOnFee_in_cents = int(addOnFee * 100)
     extraFee = int(request.POST.get('extraFee'))
     extraFee = int(extraFee * 100)
-    total_price = float(request.POST.get('total_price', 19.8))
+    total_price = float(request.POST.get('total_price', 23))
     total_price_in_cents = int(total_price * 100)
     tax_rate = 0.05
     tax_in_cents = int(total_price_in_cents * tax_rate)
@@ -70,6 +73,17 @@ def create_checkout_session(request):
                         'unit_amount': extraFee,
                     },
                     'quantity': 1,
+                },
+                
+                {
+                    'price_data': {
+                        'currency': 'cad',
+                        'product_data': {
+                            'name': '饮品/小吃(Add Ons)',
+                        },
+                        'unit_amount': addOnFee_in_cents,
+                    },
+                    'quantity': 1,
                 }
             ],
             mode='payment',
@@ -89,6 +103,8 @@ def create_checkout_session(request):
                 'room_number': room_number,
                 'lon': lon,
                 'lat': lat,
+                'addOn': addOnContent,
+                'addOnFee': addOnFee,
             }
         )
     except Exception as e:
@@ -127,12 +143,14 @@ def stripe_webhook(request):
         today_meal = session['metadata']['todays_meal']
         meal_items = today_meal.split(",")
         extraFee = session['metadata']['extraFee']
+        addOnFee = session['metadata']['addOnFee']
         tax = session['metadata']['tax']
         room_number = session['metadata']['room_number']
         lon = session['metadata']['lon']
         lat = session['metadata']['lat']
         lon = float(lon)
         lat = float(lat)
+        addOnContent = session['metadata']['addOn']
         meal_list_html = "".join([f"<li>{meal}</li>" for meal in meal_items])
         Order.objects.create(
             address=address,
@@ -149,6 +167,7 @@ def stripe_webhook(request):
             date = datetime.datetime.now(pytz.timezone("America/Edmonton")),
             lon = lon,
             lat = lat,
+            addOns = addOnContent,
         )
         encoded_address = urllib.parse.quote(address)
         order = Order.objects.get(session_id=session['id'])
@@ -177,11 +196,13 @@ def stripe_webhook(request):
                         <p>电话号码: {order.phone_number}</p>
                         <p>电子邮件: {order.email}</p>
                         <p>日期: {order.date.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                        <p>价格: {order.price}</p>
+                        <p>餐价: {order.price}元 (未含其他费用)</p>
                         <p>餐品数量: {order.quantity}</p>
                         <p>备注: {order.comment}</p>
                         <p>税金: {tax}元</p>
                         <p>配送费: {"免费" if extraFee == "0.0" else f"{extraFee}元"}</p>
+                        <p>饮品/小吃: {addOnContent}</p>
+                        <p>附加品费用：{"无" if addOnFee == "0.0" else f"{addOnFee}元"} </p>
                         <h1>今日餐品</h1>
                         <ul>
                             {meal_list_html}
@@ -211,11 +232,13 @@ def stripe_webhook(request):
                         <p>顾客电话: {order.phone_number}</p>
                         <p>顾客邮箱: {order.email}</p>
                         <p>下单日期: {order.date.strftime('%Y-%m-%d %H:%M:%S')}</p>
-                        <p>价格: {order.price}</p>
+                        <p>餐价: {order.price}元 (未含其他费用)</p>
                         <p>餐品数量: {order.quantity}</p>
                         <p>顾客备注: {order.comment}</p>
-                        <p>税金: {tax}元</p>
+                        <p>税金: {tax}元 </p>
                         <p>配送费: {"免费" if extraFee == "0.0" else f"{extraFee}元"}</p>
+                        <p>饮品/小吃: {addOnContent}</p>
+                        <p>附加品费用：{"无" if addOnFee == "0.0" else f"{addOnFee}元"} </p>
                         <h1>今日餐品</h1>
                         <ul>
                             {meal_list_html}

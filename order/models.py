@@ -58,6 +58,7 @@ class Order(models.Model):
     room_number = models.CharField(max_length=100, blank=True, null=True, default='N/A')
     lon = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     lat = models.DecimalField(max_digits=9, decimal_places=6, default=0)
+    addOns = models.TextField(blank=True, null=True)
     cancel_time = models.DateTimeField(blank=True, null=True) # should not be cancelled after this time, if order is ordered after 11am, it should not be cancelled after tommorow 9L30am, if ordered before 11am, it should not be cancelled after today 9:30am
     def save(self, *args, **kwargs):
         order_time = timezone.localtime(self.date)
