@@ -20,7 +20,7 @@ stripe.api_key = settings.STRIPE_SECRET_KEY
 YOUR_DOMAIN = settings.FRONT_END_DOMAIN
 MAILJET_API_KEY = settings.MAILJET_API_KEY
 MAILJET_SECRET_KEY = settings.MAILJET_SECRET_KEY
-DEVELOPMENT = os.environ.get('DEVELOPMENT', False)
+DEVELOPMENT = settings.DEVELOPMENT
 import datetime
 @api_view(['POST'])
 @permission_classes([AllowAny])
