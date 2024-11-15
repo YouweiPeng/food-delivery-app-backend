@@ -347,7 +347,7 @@ def create_check_session_for_add_money(request):
 def stripe_webhook_add_money(request):
     payload = request.body
     sig_header = request.headers['Stripe-Signature']
-    endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+    endpoint_secret = settings.ADD_MONEY_WEBHOOK
     event = None
     try:
         event = stripe.Webhook.construct_event(
