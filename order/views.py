@@ -16,9 +16,12 @@ from django.utils import timezone
 from django.http import JsonResponse
 import stripe
 from django.conf import settings
+from decimal import Decimal, ROUND_HALF_UP
+from django.shortcuts import redirect
 stripe.api_key = settings.STRIPE_SECRET_KEY
 MAILJET_API_KEY = settings.MAILJET_API_KEY
 MAILJET_SECRET_KEY = settings.MAILJET_SECRET_KEY
+YOUR_DOMAIN = settings.FRONT_END_DOMAIN
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def getAllFoodItems(request):
@@ -218,4 +221,61 @@ def delivery_finish_order(request):
     }
     mailjet.send.create(data=data)
     return JsonResponse({'message': 'Order finished successfully', "order_code": order_code}, status=200)
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def cancel_order_by_credit(request):
+    session_id = request.COOKIES.get('sessionid')
+    order_code = request.data.get('order_code')
+    uuid = request.data.get('uuid')
+    user = User.objects.get(uuid=uuid)
+    if not session_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    session = Session.objects.get(session_key=session_id)
+    if session.expire_date < timezone.now():
+        return JsonResponse({'error': 'Session expired'}, status=400)
+    order = Order.objects.get(order_code=order_code, user=uuid)
+    if order.cancel_time < timezone.now():
+        return JsonResponse({'error': 'Order cannot be cancelled, already passed cancel time'}, status=400)
+    if order.status != 'pending':
+        return JsonResponse({'error': 'Order cannot be cancelled'}, status=400)
+    refund_amount = Decimal((order.price + Decimal(order.delivery_fee) + order.addOnFee)* Decimal(0.95)).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP)
+    user.credit += refund_amount
+    order.status = 'refunded'
+    order.save()
+    user.save()
+    mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
+    data = {
+        'Messages': [
+            {
+                    "From": {
+                        "Email": "no-reply@tastyrush.ca",
+                        "Name": "Tasty Rush"
+                    },
+                    "To": [
+                        {
+                            "Email": order.email
+                        }
+                    ],
+                    "Subject": "您的订单已取消",
+                    "TextPart": f"您的订单{order.order_code} 已取消",
+                    "HTMLPart": f"""
+                    <h3>您的订单{order.order_code} 已取消， 此订单为余额支付，款项会返回至账户余额</h3>
+                    <h1>订单详情</h1>
+                    <p>订单号: {order.order_code}</p>
+                    <p>地址: {order.address}</p>
+                    <p>电话号码: {order.phone_number}</p>
+                    <p>电子邮件: {order.email}</p>
+                    <p>餐品价格: {order.price}</p>
+                    <p>配送费: {order.delivery_fee}</p>
+                    <p>饮品/小吃: {order.addOns}</p>
+                    <p>附加品费用: {order.addOnFee}</p>
+                    <p>由于stripe平台条款, 会收取5%作为手续费</p>
+                    """
+                }
+        ]
+    }
+    mailjet.send.create(data=data)
+    return JsonResponse({'message': 'Order cancelled successfully','credit':user.credit}, status=200)
+
 

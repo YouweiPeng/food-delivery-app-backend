@@ -22,7 +22,8 @@ MAILJET_SECRET_KEY = os.getenv("MAIL_JET_SECRET_KEY")
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 DEVELOPMENT = os.getenv("DEVELOPMENT") == "True"
-
+ADMIN_ID = os.getenv("ADMIN_ID")
+ADMIN_PWD = os.getenv("ADMIN_PWD")
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.1/howto/deployment/checklist/
 

@@ -15,7 +15,20 @@ from django.utils import timezone
 from django.contrib.sessions.models import Session
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+import random
+import string
+from mailjet_rest import Client
+from datetime import timedelta
+from rest_framework.authentication import BasicAuthentication
+from rest_framework.permissions import IsAuthenticated
+
+
 FRONT_END_DOMAIN = settings.FRONT_END_DOMAIN
+MAILJET_API_KEY = settings.MAILJET_API_KEY
+MAILJET_SECRET_KEY = settings.MAILJET_SECRET_KEY
+ADMIN_ID = settings.ADMIN_ID
+ADMIN_PWD = settings.ADMIN_PWD
+
 User = get_user_model()
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -41,6 +54,7 @@ def user_login(request):
             'phone_number': user.phone_number,
             'room_number': user.room_number,
             'is_staff': user.is_staff,
+            'credit': user.credit,
         })
         response.set_cookie(
             'sessionid', 
@@ -90,6 +104,7 @@ def auto_login(request):
                         'phone_number': user.phone_number,
                         'room_number': user.room_number,
                         'is_staff': user.is_staff,
+                        'credit': user.credit,
                     })
 
         except Session.DoesNotExist:
@@ -114,7 +129,7 @@ def user_signup(request):
         return Response({'error': '电话号码已被注册'}, status=status.HTTP_400_BAD_REQUEST)
     user = User(username=username, password=make_password(password), email = email, address = address, phone_number = phone_number, room_number = room_number)
     user.save()
-    return Response({'message': 'User created successfully', 'uuid': user.uuid, 'is_staff':user.is_staff}, status=status.HTTP_201_CREATED)
+    return Response({'message': 'User created successfully', 'uuid': user.uuid, 'is_staff':user.is_staff, 'credit':user.credit}, status=status.HTTP_201_CREATED)
 
 @api_view(['PUT'])
 @permission_classes([AllowAny])
@@ -129,11 +144,16 @@ def edit_user_info(request):
     user_uuid = session_data.get('_auth_user_id')
     user = User.objects.get(uuid=user_uuid)
     if request.method == 'PUT':
+        email = request.data.get("email")
+        users = User.objects.filter(email=email)
+        if users.exists() and str(user_uuid) != str(users[0].uuid):
+            return Response({'error': '邮箱已被注册'}, status=status.HTTP_400_BAD_REQUEST)
         serializer = UserSerializer(user, data=request.data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def user_logout(request):
@@ -141,3 +161,69 @@ def user_logout(request):
     response = JsonResponse({'message': 'Logged out successfully'})
     response.delete_cookie('sessionid')
     return response
+
+
+@api_view(['PUT'])
+@permission_classes([AllowAny])
+def change_password(request):
+    session_id = request.COOKIES.get('sessionid')
+    verification_code = request.data.get("verification_code")
+    if not session_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    session = Session.objects.get(session_key=session_id)
+    if session.expire_date < timezone.now():
+        return JsonResponse({'error': 'Session expired'}, status=400)
+    session_data = session.get_decoded()
+    user_uuid = session_data.get('_auth_user_id')
+    user = User.objects.get(uuid=user_uuid)
+    if user.verification_code != verification_code:
+        return JsonResponse({'error': 'Invalid verification code'}, status=400)
+    if user.verification_expiry < timezone.now():
+        return JsonResponse({'error': 'Verification code expired'}, status=400)
+    password = request.data.get("password")
+    user.password = make_password(password)
+    user.save()
+    return JsonResponse({'message': 'Password changed successfully'}, status=200)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_verification_code(request):
+    session_id = request.COOKIES.get('sessionid')
+    if not session_id:
+        return JsonResponse({'error': 'Not authenticated'}, status=401)
+    session = Session.objects.get(session_key=session_id)
+    if session.expire_date < timezone.now():
+        return JsonResponse({'error': 'Session expired'}, status=400)
+    session_data = session.get_decoded()
+    user_uuid = session_data.get('_auth_user_id')
+    user = User.objects.get(uuid=user_uuid)
+    email = user.email
+    length = 6
+    chars = string.digits
+    code = ''.join(random.choices(chars, k=length))
+    expiry = timezone.now() + timedelta(minutes=10)
+    user.verification_code = code
+    user.verification_expiry = expiry
+    user.save()
+    mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
+    data = {
+        'Messages': [
+            {
+                "From": {
+                    "Email": "no-reply@tastyrush.ca",
+                    "Name": "Tasty Rush"
+                },
+                "To": [
+                    {
+                        "Email": email,
+                    }
+                ],
+                "Subject": "验证码",
+                "TextPart": "验证码",
+                "HTMLPart": f"<h3>您的验证码为: {code}, 请不要与他人分享</h3>"
+            }
+        ]
+    }
+    mailjet.send.create(data=data)
+    return JsonResponse({'message': 'Verification code sent successfully'}, status=200)
+    

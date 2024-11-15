@@ -28,6 +28,12 @@ ORDER_STATUS_CHOICES = [
     ('delivered', 'delivered'),
     ('refunded', 'refunded'),
 ]
+PAYMENT_METHOD_CHOICES = [
+    ('card', 'card'),
+    ('mix', 'mix'),
+    ('credit', 'credit'),
+]
+
 def generate_order_code():
     length = 6
     chars = string.ascii_uppercase + string.digits
@@ -59,10 +65,13 @@ class Order(models.Model):
     lon = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     lat = models.DecimalField(max_digits=9, decimal_places=6, default=0)
     addOns = models.TextField(blank=True, null=True)
+    addOnFee = models.DecimalField(max_digits=6, decimal_places=2, default=0)
+    is_early = models.BooleanField(default=False)
+    payment_method = models.CharField(max_length=100, choices=PAYMENT_METHOD_CHOICES, default='card')
     cancel_time = models.DateTimeField(blank=True, null=True) # should not be cancelled after this time, if order is ordered after 11am, it should not be cancelled after tommorow 9L30am, if ordered before 11am, it should not be cancelled after today 9:30am
     def save(self, *args, **kwargs):
         order_time = timezone.localtime(self.date)
-        if order_time.hour >= 11:
+        if order_time.hour >= 10:
             self.cancel_time = order_time.replace(hour=9, minute=30, second=0, microsecond=0) + datetime.timedelta(days=1)
         else:
             self.cancel_time = order_time.replace(hour=9, minute=30, second=0, microsecond=0)
