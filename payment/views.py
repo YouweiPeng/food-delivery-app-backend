@@ -38,7 +38,8 @@ def create_checkout_session(request):
     addOnContent = request.POST.get('addOn')
     addOnFee = float(request.POST.get('addOnFee'))
     addOnFee_in_cents = int(addOnFee * 100)
-    extraFee = int(request.POST.get('extraFee'))
+    is_utensils= request.POST.get('utensils') == 'on'
+    extraFee = float(request.POST.get('extraFee'))
     extraFee_in_cents = int(extraFee * 100)
     total_price = float(request.POST.get('total_price', 23))
     total_price_in_cents = int(total_price * 100)
@@ -126,6 +127,7 @@ def create_checkout_session(request):
                 'addOn': addOnContent,
                 'addOnFee': addOnFee,
                 'payment_method': 'card' if coupon is None else 'mix',
+                'is_utensils': is_utensils,
             }
         )
     except Exception as e:
@@ -173,6 +175,7 @@ def stripe_webhook(request):
         lon = session['metadata']['lon']
         lat = session['metadata']['lat']
         payment_method = session['metadata']['payment_method']
+        is_utensils = session['metadata']['is_utensils']
         lon = float(lon)
         lat = float(lat)
         addOnContent = session['metadata']['addOn']
@@ -195,6 +198,7 @@ def stripe_webhook(request):
             addOns = addOnContent,
             addOnFee = addOnFee,
             payment_method = payment_method,
+            is_utensils = is_utensils,
         )
         if user != '':
             user_instance = User.objects.get(uuid=user)
@@ -205,6 +209,10 @@ def stripe_webhook(request):
         order = Order.objects.get(session_id=session['id'])
         order.date = datetime.datetime.now(pytz.timezone("America/Edmonton"))
         order.save()
+        # if order.cancel time's day > order.date's day, then mark the order is early true
+        if order.date.day < order.cancel_time.day:
+            order.is_early = True
+            order.save()
         mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
         data = {
             'Messages': [
@@ -418,7 +426,8 @@ def create_order_by_existing_credit(request):
     addOnContent = request.POST.get('addOn')
     addOnFee = float(request.POST.get('addOnFee'))
     addOnFee_in_cents = int(addOnFee * 100)
-    extraFee = int(request.POST.get('extraFee'))
+    extraFee = int(float(request.POST.get('extraFee')))
+    is_utensils= request.POST.get('utensils') == 'on'
     total_price = float(request.POST.get('total_price', 23))
     total_price_in_cents = int(total_price * 100)
     tax_rate = 0.05
@@ -446,10 +455,14 @@ def create_order_by_existing_credit(request):
             addOns = addOnContent,
             addOnFee = addOnFee,
             payment_method = payment_method,
+            is_utensils = is_utensils,
         )
         user.credit -= rounded_ground_total
         user.save()
         order.save()
+        if order.date.day < order.cancel_time.day:
+            order.is_early = True
+            order.save()
         encoded_address = urllib.parse.quote(address)
         mailjet = Client(auth=(MAILJET_API_KEY, MAILJET_SECRET_KEY), version='v3.1')
         data = {

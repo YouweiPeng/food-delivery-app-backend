@@ -69,6 +69,7 @@ class Order(models.Model):
     is_early = models.BooleanField(default=False)
     payment_method = models.CharField(max_length=100, choices=PAYMENT_METHOD_CHOICES, default='card')
     cancel_time = models.DateTimeField(blank=True, null=True) # should not be cancelled after this time, if order is ordered after 11am, it should not be cancelled after tommorow 9L30am, if ordered before 11am, it should not be cancelled after today 9:30am
+    is_utensils = models.BooleanField(default=True)
     def save(self, *args, **kwargs):
         order_time = timezone.localtime(self.date)
         if order_time.hour >= 10:

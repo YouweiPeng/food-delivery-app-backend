@@ -110,7 +110,7 @@ def cancel_order(request, order_code, uuid):
     try:
         stripe.Refund.create(
             payment_intent=order.payment_intent,
-            amount = int(int(order.price + order.delivery_fee) * 100 - 0.062 * int(order.price + order.delivery_fee) * 100 - 0.3 * 100)
+            amount = int(order.price * 100 * Decimal(0.95).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP))
         )
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
@@ -239,7 +239,7 @@ def cancel_order_by_credit(request):
         return JsonResponse({'error': 'Order cannot be cancelled, already passed cancel time'}, status=400)
     if order.status != 'pending':
         return JsonResponse({'error': 'Order cannot be cancelled'}, status=400)
-    refund_amount = Decimal((order.price + Decimal(order.delivery_fee) + order.addOnFee)* Decimal(0.95)).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP)
+    refund_amount = (order.price * Decimal(0.95)).quantize(Decimal('0.00'), rounding=ROUND_HALF_UP)
     user.credit += refund_amount
     order.status = 'refunded'
     order.save()
