@@ -121,7 +121,8 @@ def cancel_order(request, order_code, uuid):
         'Messages': [
             {
                 "From": {
-                    "Email": "990907pyw@gmail.com",
+                    "Email": "no-reply@tastyrush.ca",
+                    "Name": "Tasty Rush"
                 },
                 "To": [
                     {
